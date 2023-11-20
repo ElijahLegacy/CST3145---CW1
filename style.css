@@ -117,8 +117,6 @@ header {
   box-sizing: border-box;
 }
 
-/* Add more styles as needed */
-
 @media (max-width: 768px) {
   .search-sort {
       flex-direction: column;
