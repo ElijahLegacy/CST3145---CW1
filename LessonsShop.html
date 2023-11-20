@@ -90,6 +90,10 @@
                     <input v-model.trim="order.lastName"/>
                 </p>
                 <p>
+                    <strong>Phone:</strong>
+                    <input v-model.number="order.phone" type="number" />
+                </p>
+                <p>
                     <strong>Address:</strong>
                     <input v-model="order.address"/>
                 </p>
@@ -124,6 +128,7 @@
                 <h2>Order Information</h2>
                 <p>First Name: {{order.firstName}}</p>
                 <p>Last Name: {{order.lastName}}</p>
+                <p>Phone Number: {{order.phone}}</p>
                 <p>Address: {{order.address}}</p>
                 <p>City: {{order.city}}</p>
                 <p>Emirate: {{order.emirate}}</p>
@@ -131,6 +136,7 @@
                 <p>Method: {{order.method}}</p>
                 <p>Gift? {{order.gift}}</p>
                 <button v-on:click="submitForm">Place Order</button>
+                <p v-if="orderSubmitted">Order Submitted!</p>
             </div>
             <!-- Shopping Cart Section -->
             <div class="cart" v-if="showShoppingCart">
@@ -167,6 +173,7 @@
                 order: {
                     firstName: '',
                     lastName: '',
+                    phone:'',
                     address: '',
                     city: '',
                     zip: '',
@@ -188,9 +195,9 @@
                 searchQuery: '',
                 sortAttributes: [],
                 ascendingOrder: true,
-                space: 0,
                 showShoppingCart: false,
                 showCheckout: false,
+                orderSubmitted: false,
             },
             methods:{
                 addToCart(product) {
@@ -214,11 +221,10 @@
                         this.showProduct = !this.showProduct;
                         this.showShoppingCart = !this.showShoppingCart;
                     },
-                    toggleShoppingCart() {
-                        this.showShoppingCart = !this.showShoppingCart;
-                    },
-                    submitForm(){
-                        alert('Order Submitted!')
+                    submitForm() {
+                    if (this.isValidCheckout()) {
+                        this.orderSubmitted = true;
+                    }
                     },
                     cartCount(id){
                         let count = 0;
@@ -278,8 +284,18 @@
 
                             this.cart.splice(index, 1);
                         }
-                    }
-            },
+                    },
+                        isValidCheckout() {
+                            // Validate Name (letters only) and Phone (numbers only)
+                            const nameRegex = /^[a-zA-Z]+$/;
+                            const phoneRegex = /^[0-9]+$/;
+
+                            const isNameValid = nameRegex.test(this.order.firstName) && nameRegex.test(this.order.lastName);
+                            const isPhoneValid = phoneRegex.test(this.order.phone);
+
+                            return isNameValid && isPhoneValid;
+                        },
+                },
                 computed: {
                     cartItemCount: function () {
                         return this.cart.length || '';
@@ -290,23 +306,26 @@
                     sortedProducts() {
                         let productsArray = this.filteredProducts.slice(0);
 
-                        if (productsArray.length === 0) {
-                        return productsArray; // Return if no products to sort
+                        if (this.sortAttributes.length === 0) {
+                            return productsArray; // Return if no sorting attributes are selected
                         }
 
-                        switch (this.sortAttribute) {
-                        case 'price':
-                            return productsArray.sort((a, b) => a.price - b.price);
-                        case 'price-desc':
-                            return productsArray.sort((a, b) => b.price - a.price);
-                        case 'rating':
-                            return productsArray.sort((a, b) => a.rating - b.rating);
-                        case 'rating-desc':
-                            return productsArray.sort((a, b) => b.rating - a.rating);
-                        default:
-                            return productsArray;
-                        }
+                        this.sortAttributes.forEach(attribute => {
+                            function compare(a, b) {
+                                if (a[attribute] > b[attribute]) return 1;
+                                if (a[attribute] < b[attribute]) return -1;
+                                return 0;
+                            }
+
+                            // Sort the array based on the selected attribute and order
+                            productsArray = this.ascendingOrder
+                                ? productsArray.sort(compare)
+                                : productsArray.sort(compare).reverse();
+                        });
+
+                        return productsArray;
                     },
+
                     isCartNotEmpty(){
                         return this.cart.length > 0;
                     }
