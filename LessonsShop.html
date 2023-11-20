@@ -24,26 +24,33 @@
 
           <div class="sort-checkout-container">
 
-            <div class="sort-container">
-              <label for="sort">Sort by:</label>
-              <select id="sort" v-model="sortAttribute" @change="sortProducts">
-                <option value="price">Price Ascending</option>
-                <option value="price-desc">Price Descending</option>
-                <option value="rating">Rating Ascending</option>
-                <option value="rating-desc">Rating Descending</option>
-              </select>
-            </div>
-            <button @click="toggleCheckout" class="button">
-                {{ cartItemCount }}
-                <span class="fa-solid fa-cart-shopping"></span>
-                Checkout
-            </button>
-          </div>
-
         </div>
     </header>
 
     <main id="main-wrapper">
+      <div class="sort-container">
+        <label>Sort by:</label>
+        <div v-for="attribute in ['subject', 'location', 'price', 'availability']">
+            <input
+                type="checkbox"
+                :id="attribute"
+                :value="attribute"
+                v-model="sortAttributes"
+                @change="sortProducts"
+            />
+            <label :for="attribute">{{ attribute }}</label>
+        </div>
+    </div>
+    
+    <div class="ascending-descending-options">
+        <input
+            type="checkbox"
+            id="ascending"
+            v-model="ascendingOrder"
+            @change="sortProducts"
+        />
+        <label for="ascending">Ascending</label>
+    </div>
         <div class="product-container" v-if="showProduct">
           <div class="product" v-for="product in sortedProducts">
             <figure>
@@ -155,7 +162,8 @@
                 cart: [], // To store in items in shopping cart
                 showProduct: true,
                 searchQuery: '',
-                sortAttribute: 'price',
+                sortAttributes: [],
+                ascendingOrder: true,
                 space: 0,
                 showShoppingCart: false,
                 showCheckout: false,
@@ -191,16 +199,28 @@
                         }
                         return count;
                     },
-                    sortProducts(attribute) {
+                    sortProducts() {
                         let productsArray = this.products.slice(0);
 
-                        function compare(a, b) {
-                        if (a[attribute] > b[attribute]) return 1;
-                        if (a[attribute] < b[attribute]) return -1;
-                        return 0;
+                        // Check if any sorting attributes are selected
+                        if (this.sortAttributes.length > 0) {
+                            // Use a loop to apply sorting for each selected attribute
+                            this.sortAttributes.forEach(attribute => {
+                                function compare(a, b) {
+                                    if (a[attribute] > b[attribute]) return 1;
+                                    if (a[attribute] < b[attribute]) return -1;
+                                    return 0;
+                                }
+
+                                // Sort the array based on the selected attribute and order
+                                productsArray = this.ascendingOrder
+                                    ? productsArray.sort(compare)
+                                    : productsArray.sort(compare).reverse();
+                            });
                         }
 
-                        this.products = attribute === 'price' ? productsArray.sort(compare) : productsArray.sort(compare).reverse();
+                        // Update the products data with the sorted array
+                        this.products = productsArray;
                     },
                     searchProducts() {
                         let query = this.searchQuery ? this.searchQuery.toLowerCase().trim() : '';
