@@ -28,29 +28,30 @@
     </header>
 
     <main id="main-wrapper">
-      <div class="sort-container">
-        <label>Sort by:</label>
-        <div v-for="attribute in ['subject', 'location', 'price', 'availability']">
+        <div class="sort-container">
+            <label>Sort by:</label>
+            <div v-for="attribute in ['subject', 'location', 'price', 'availability']">
+                <input
+                    type="checkbox"
+                    :id="attribute"
+                    :value="attribute"
+                    v-model="sortAttributes"
+                    @change="sortProducts"
+                />
+                <label :for="attribute">{{ attribute }}</label>
+            </div>
+        </div>
+        
+        <div class="ascending-descending-options">
             <input
                 type="checkbox"
-                :id="attribute"
-                :value="attribute"
-                v-model="sortAttributes"
+                id="ascending"
+                v-model="ascendingOrder"
                 @change="sortProducts"
             />
-            <label :for="attribute">{{ attribute }}</label>
+            <label for="ascending">Ascending</label>
         </div>
-    </div>
-    
-    <div class="ascending-descending-options">
-        <input
-            type="checkbox"
-            id="ascending"
-            v-model="ascendingOrder"
-            @change="sortProducts"
-        />
-        <label for="ascending">Ascending</label>
-    </div>
+        
         <div class="product-container" v-if="showProduct">
           <div class="product" v-for="product in sortedProducts">
             <figure>
